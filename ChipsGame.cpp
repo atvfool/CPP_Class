@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <ctype.h>
+#include <fstream>
 
 using namespace std;
 
@@ -12,6 +13,7 @@ string GetPlayerName(string[], bool);
 int AskMove(bool, int, string[]);
 int CalcMaxChips(int);
 void GetUserNames(string[]);
+void WriteResultsToFile(string, int);
 
 const int MAX_CHIPS = 100;
 const float MAX_TURN = .5;
@@ -25,6 +27,7 @@ int main(){
     bool gameOver = false;
     int chipsInPile = 0;
     int chipsTaken = 0;
+    int numMoves = 0; // not sure if the number of moves should include both players moves or just one players moves? Assuming both.
 
     // Get the players names
     GetUserNames(playerName);
@@ -36,21 +39,25 @@ int main(){
         chipsInPile = (rand() % MAX_CHIPS) + 1;
         cout << "This round will start with " << chipsInPile << " chips in the pile \n";
         gameOver = false;
+        numMoves = 0;
         while(!gameOver){
             // Get how many chips the player has taken
             chipsTaken = AskMove(player1Turn, chipsInPile, playerName);
+            numMoves += 1;
             chipsInPile = chipsInPile - chipsTaken;
             cout << "There are " << chipsInPile << " left in the pile\n";
 
             // Check if the win conditions are met
             if(chipsInPile == 0){
                 gameOver = true;
-            }else{
-                player1Turn = !player1Turn; // flip whos turn it is when game isn't over
-            }   
+            }
+            player1Turn = !player1Turn; // flip whos turn it is when game isn't over
         }
         
-        cout << "Congrats " << GetPlayerName(playerName, !player1Turn) << " on winning!\n";
+        // Congratulate the winner
+        cout << "Congrats " << GetPlayerName(playerName, player1Turn) << " on winning!\n";
+        // Save the results to a file
+        WriteResultsToFile(GetPlayerName(playerName, player1Turn), numMoves);
 
         cout << "Do you want to play again?Yes(y), No(n)\n";
         cin >> playAgain;
@@ -103,4 +110,13 @@ void GetUserNames(string players[]){
 
     cout << "Enter player 2 name (If you wish to play against the computer enter the name AI)\n";
     cin >> players[1];
+}
+
+void WriteResultsToFile(string winnerName, int numberOfMoves){
+    ofstream outputFile;
+    outputFile.open("ChipsGameResults.csv", ios::app);
+    // This is how i think the challenge will be anwered but i'd prefer to enter the results in a csv format
+    // outputFile << winnerName << " won in " << numberOfMoves << " moves\n";
+    outputFile << winnerName << ',' << numberOfMoves << endl;
+    outputFile.close();
 }
